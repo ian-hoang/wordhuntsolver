@@ -354,9 +354,9 @@ export default function Home() {
       )}
 
       <footer className="w-full bg-[#2b3a22] text-white text-center p-4 mt-8">
-        <p className="text-sm">© 2025 Word Hunt Solver. Developed by {" "}
+        <p className="text-sm">© 2026 Word Hunt Solver. Developed by {" "}
           <a 
-            href="https://github.com/ianhoangdev" 
+            href="https://github.com/ian-hoang" 
             target="_blank" 
             rel="noopener noreferrer"
             className="text-blue-400 hover:text-blue-600"
