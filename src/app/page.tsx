@@ -6,7 +6,6 @@ import { FaTrash, FaBeer } from 'react-icons/fa';
 
 const WebAssembly = {
   wrapper: null as any,
-  binary: null as any,
   instance: null as any,
 };
 
@@ -71,7 +70,6 @@ export default function Home() {
     async function loadWasm() {
       try {
         WebAssembly.wrapper = await import("../../public/solve_wasm.js");
-        WebAssembly.binary = await fetch("/solve_wasm.wasm");
         WebAssembly.instance = await WebAssembly.wrapper.default({
           locateFile: () => "/solve_wasm.wasm",
         });

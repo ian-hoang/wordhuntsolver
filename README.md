@@ -48,7 +48,7 @@ To run the Wordhunt Solver locally:
 
 3. Compile the C++ code to WebAssembly:
 
-`emcc ./src/app/solve.cpp -o ./public/solve_wasm.js -s EXPORT_ES6=1 -s EXPORT_NAME="solve" -s EXPORTED_FUNCTIONS="['_solve', '_malloc', '_free']" -s ENVIRONMENT="web" -s EXPORTED_RUNTIME_METHODS='["UTF8ToString", "stringToUTF8"]' -s ALLOW_MEMORY_GROWTH=1`
+`npm run build:wasm`
 
 4. Start the development server:
 

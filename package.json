@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:wasm": "em++ src/app/solve.cpp -O3 -o public/solve_wasm.js -sEXPORT_ES6=1 -sEXPORT_NAME=solve -sENVIRONMENT=web -sALLOW_MEMORY_GROWTH=1 -sEXPORTED_FUNCTIONS=_solve,_malloc,_free -sEXPORTED_RUNTIME_METHODS=UTF8ToString,stringToUTF8",
     "start": "next start",
     "lint": "next lint"
   },
