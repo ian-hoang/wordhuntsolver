@@ -1,12 +1,10 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import axios from 'axios';
 import { FaTrash, FaBeer } from 'react-icons/fa';
 
 const WebAssembly = {
   wrapper: null as any,
-  binary: null as any,
   instance: null as any,
 };
 
@@ -14,8 +12,12 @@ export default function Home() {
 
   const getWordMeaning = async (word: string) => {
     try {
-      const response = await axios.get(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
-      const meanings = response.data[0].meanings;
+      const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+      if (!response.ok) {
+        throw new Error(`Dictionary API returned ${response.status}`);
+      }
+      const data = await response.json();
+      const meanings = data[0].meanings;
       
       // Extract and set the first definition
       if (meanings && meanings.length > 0) {
@@ -71,10 +73,20 @@ export default function Home() {
     async function loadWasm() {
       try {
         WebAssembly.wrapper = await import("../../public/solve_wasm.js");
-        WebAssembly.binary = await fetch("/solve_wasm.wasm");
-        WebAssembly.instance = await WebAssembly.wrapper.default({
-          locateFile: () => "/solve_wasm.wasm",
-        });
+        const [instance, dictText] = await Promise.all([
+          WebAssembly.wrapper.default({
+            locateFile: () => "/solve_wasm.wasm",
+          }),
+          fetch("/dict.txt").then((response) => response.text()),
+        ]);
+
+        // Build the dictionary trie once; every solve() call reuses it.
+        const dictPtr = instance._malloc(dictText.length + 1);
+        instance.stringToUTF8(dictText, dictPtr, dictText.length + 1);
+        instance._init(dictPtr);
+        instance._free(dictPtr);
+
+        WebAssembly.instance = instance;
         console.log("WebAssembly instance loaded:", WebAssembly.instance);
       } catch (error) {
         console.error("Failed to load WebAssembly:", error);
@@ -118,19 +130,13 @@ export default function Home() {
 
     const boardString = board.flat().join("");
     console.log("Board string:", boardString);
-    
-    const dictResponse = await fetch("/dict.txt");
-    const dictText = await dictResponse.text();
-  
+
     if (WebAssembly.instance) {
       try {
         const ptr = WebAssembly.instance._malloc(boardString.length + 1);
         WebAssembly.instance.stringToUTF8(boardString, ptr, boardString.length + 1);
-  
-        const dictPtr = WebAssembly.instance._malloc(dictText.length + 1);
-        WebAssembly.instance.stringToUTF8(dictText, dictPtr, dictText.length + 1);
-  
-        const resPtr = WebAssembly.instance._solve(ptr, dictPtr);
+
+        const resPtr = WebAssembly.instance._solve(ptr);
         const res = WebAssembly.instance.UTF8ToString(resPtr);
 
         const solutionsDict = res.split("\n").reduce((acc: Record<string, [number, number][]> , line: string) => {
@@ -174,7 +180,6 @@ export default function Home() {
         setNewSolutions(groupedSolutions);
 
         WebAssembly.instance._free(ptr);
-        WebAssembly.instance._free(dictPtr);
       } catch (error) {
         console.error("Error calling WebAssembly solve function:", error);
       }

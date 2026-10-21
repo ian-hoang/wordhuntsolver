@@ -62,9 +62,30 @@ void insertWord(TrieNode* root, const string& word) {
     node->isEndOfWord = true;
 }
 
+// Built once by init() and reused by every solve() call.
+TrieNode* root = nullptr;
+
 extern "C" {
     EMSCRIPTEN_KEEPALIVE
-    char* solve(const char* boardInput, const char* dictInput) {
+    void init(const char* dictInput) {
+        if (root) return;
+
+        root = new TrieNode();
+        stringstream dictStream(dictInput);
+        string singleword;
+        while (dictStream >> singleword) {
+            if (singleword.length() >= 3 && singleword.length() <= 8) {
+                insertWord(root, singleword);
+            }
+        }
+    }
+
+    EMSCRIPTEN_KEEPALIVE
+    char* solve(const char* boardInput) {
+        static string output;
+        output.clear();
+        if (!root) return (char*)output.c_str();
+
         vector<vector<char>> board(4, vector<char>(4));
         int idx = 0;
         for (int i = 0; i < 4; ++i) {
@@ -72,20 +93,6 @@ extern "C" {
                 board[i][j] = boardInput[idx++];
                 cout << board[i][j] << " ";
             }
-        }
-
-        vector<string> wordList;
-        stringstream dictStream(dictInput);
-        string singleword;
-        while (dictStream >> singleword) {
-            if (singleword.length() >= 3 && singleword.length() <= 8) {
-                wordList.push_back(singleword);
-            }
-        }
-
-        TrieNode* root = new TrieNode();
-        for (const string& word : wordList) {
-            insertWord(root, word);
         }
 
         unordered_map<string, string> result;
@@ -100,8 +107,6 @@ extern "C" {
             }
         }
 
-        static string output;
-        output.clear();
         for (const auto& pair : result) {
             string word = pair.first;
             string path = pair.second;
