@@ -1,6 +1,6 @@
 [build]
-  ccommand = "apt-get update && apt-get install -y coreutils python3 && bash install_emsdk.sh && npm install && npm run build"
-  publish = ".next"  # This is NOT needed for Next.js, but won't break anything
+  command = "npm run build"
+  publish = ".next"
 
 [build.environment]
   NODE_VERSION = "22"
