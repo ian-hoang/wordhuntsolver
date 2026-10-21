@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import axios from 'axios';
 import { FaTrash, FaBeer } from 'react-icons/fa';
 
 const WebAssembly = {
@@ -13,8 +12,12 @@ export default function Home() {
 
   const getWordMeaning = async (word: string) => {
     try {
-      const response = await axios.get(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
-      const meanings = response.data[0].meanings;
+      const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+      if (!response.ok) {
+        throw new Error(`Dictionary API returned ${response.status}`);
+      }
+      const data = await response.json();
+      const meanings = data[0].meanings;
       
       // Extract and set the first definition
       if (meanings && meanings.length > 0) {
